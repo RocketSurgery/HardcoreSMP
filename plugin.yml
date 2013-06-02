@@ -1,0 +1,16 @@
+name: HardcoreSMP
+main: com.github.excaliburHisSheath.HardcoreSMP
+version: 0.0.2
+
+commands:
+   hsmp:
+      description: gateway command for HardcoreSMP plugin.
+      usage: hsmp
+      permission: HardcoreSMP.hsmp
+
+permissions:
+   HardcoreSMP.*:
+      description: Gives access to all Hardcore SMP commands.
+      children:
+         HardcoreSMP.hsmp: true
+      default: op
