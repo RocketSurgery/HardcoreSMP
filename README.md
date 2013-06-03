@@ -1,9 +1,11 @@
 #Hardcore SMP 
 plugin by: excaliburHisSheath & the RocketSurgery Team
+
 version: 1.0.0
 
 ## Description
 Picks a random respawn location for a player when they die, recreating the the effect of having your world wiped when you die in Hardcore SSP, while still allowing for cooperative/competitive co-op play. This improves over the standard method of doing Hardcore SMP, which bans a player after death, defeating the purpose of doing multiplayer in the first place.
+
 Currently a work in progress, with much more functionality planned for future updates.
 
 ##Functionality
