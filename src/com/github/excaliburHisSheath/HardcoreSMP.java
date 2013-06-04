@@ -22,6 +22,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class HardcoreSMP extends JavaPlugin implements Listener {
 
+	public static final String mainDirectory = "plugins/HardcoreSMP/";
+	public static final File data = new File(mainDirectory + "data.dat");
+	public static final Logger logger = Logger.getLogger("Minecraft");
+	
 	@Override
 	public void onEnable() {
 		new File(mainDirectory).mkdir();
@@ -32,7 +36,7 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 				e.printStackTrace();
 			}
 		}
-		
+
 		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvents(this, this);
 		PluginDescriptionFile pdFile = getDescription();
@@ -41,20 +45,18 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 
-		logger.info(pdFile.getName() + " version " + pdFile.getVersion()
-				+ " is now running.");
+		logger.info(pdFile.getName() + " version " + pdFile.getVersion() + " is now running.");
 	}
 
+	//
 	@Override
 	public void onDisable() {
 		PluginDescriptionFile pdFile = getDescription();
-		logger.info(pdFile.getName() + " version " + pdFile.getVersion()
-				+ " is now disabled.");
+		logger.info(pdFile.getName() + " version " + pdFile.getVersion() + " is now disabled.");
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command cmd,
-			String commandLabel, String[] args) {
+	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("hsmp")) {
 			if (args.length == 0) {
 				String[] messages = {
@@ -64,55 +66,46 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 			} else if (args[0].equalsIgnoreCase("set")) {
 				if (args.length < 3) {
 					sender.sendMessage(ChatColor.RED + "not enough arguments!");
-				} else if (args[1].equalsIgnoreCase("min")
-						|| args[1].equalsIgnoreCase("minimum")) {
+				} else if (args[1].equalsIgnoreCase("min") || args[1].equalsIgnoreCase("minimum")) {
 					try {
 						int value = Integer.parseInt(args[2]);
 						if (value < getConfig().getInt("maximum")) {
 							getConfig().set("minimum", value);
 							saveConfig();
 							sender.sendMessage(ChatColor.GREEN
-									+ "minimum distance successfully set to "
-									+ value);
+									+ "minimum distance successfully set to " + value);
 						} else {
 							sender.sendMessage(ChatColor.RED
 									+ "The minimum distance must be less than the maximum distance!");
 						}
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED
-								+ "That is not a valid minimum distance!");
+						sender.sendMessage(ChatColor.RED + "That is not a valid minimum distance!");
 					}
-				} else if (args[1].equalsIgnoreCase("max")
-						|| args[1].equalsIgnoreCase("maximum")) {
+				} else if (args[1].equalsIgnoreCase("max") || args[1].equalsIgnoreCase("maximum")) {
 					try {
 						int value = Integer.parseInt(args[2]);
 						if (value > getConfig().getInt("minimum")) {
 							getConfig().set("maximum", value);
 							saveConfig();
 							sender.sendMessage(ChatColor.GREEN
-									+ "Maximum distance successfully set to "
-									+ value);
+									+ "Maximum distance successfully set to " + value);
 						} else {
 							sender.sendMessage(ChatColor.RED
 									+ "The maximum must be more than than the minimum distance!");
 						}
 					} catch (NumberFormatException e) {
-						sender.sendMessage(ChatColor.RED
-								+ "That is not a valid maximum distance!");
+						sender.sendMessage(ChatColor.RED + "That is not a valid maximum distance!");
 					}
 				} else {
 					sender.sendMessage("That is not a valid variable to be set");
 				}
-			} else if (args[0].equalsIgnoreCase("min")
-					|| args[0].equalsIgnoreCase("minimum")) {
-				sender.sendMessage("Minimum respawn distance: "
-						+ getConfig().getInt("minimum"));
-			} else if (args[0].equalsIgnoreCase("max")
-					|| args[0].equalsIgnoreCase("maximum")) {
-				sender.sendMessage("Maximum respawn distance: "
-						+ getConfig().getInt("maximum"));
+			} else if (args[0].equalsIgnoreCase("min") || args[0].equalsIgnoreCase("minimum")) {
+				sender.sendMessage("Minimum respawn distance: " + getConfig().getInt("minimum"));
+			} else if (args[0].equalsIgnoreCase("max") || args[0].equalsIgnoreCase("maximum")) {
+				sender.sendMessage("Maximum respawn distance: " + getConfig().getInt("maximum"));
 			} else {
-				sender.sendMessage(ChatColor.RED + "That is not a valid argument for the hsmp command!");
+				sender.sendMessage(ChatColor.RED
+						+ "That is not a valid argument for the hsmp command!");
 			}
 			return true;
 		} // If this has happened the function will break and return true. if
@@ -125,7 +118,7 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 		Player player = (Player) event.getEntity();
 		logger.info(player.getName() + " died");
 	}
-	
+
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		Player player = (Player) event.getPlayer();
@@ -137,8 +130,9 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 		int max = getConfig().getInt("maximum");
 
 		// pick a random distance between 1000 and 2000
-		// pick a random angle value
 		int dist = (new Random()).nextInt(max - min) + min;
+
+		// pick a random angle value
 		double angle = (new Random()).nextDouble() * 2 * Math.PI;
 
 		int xDest = (int) (player.getLocation().getX() + dist * Math.cos(angle));
@@ -146,21 +140,36 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 
 		// the biome at the new coordinates is checked
 		// a new spot is chosen until the destination is not in the ocean
-		while (world.getBiome(xDest, zDest) == Biome.OCEAN) {
+		Biome biome = world.getBiome(xDest, zDest);
+		while (biome == Biome.OCEAN || biome == Biome.RIVER) {
+			
+			// generate new distance and angle
 			dist = (new Random()).nextInt(max - min) + min;
 			angle = (new Random()).nextDouble() * 2 * Math.PI;
 
+			// calc new x and y coords
 			xDest = (int) (player.getLocation().getX() + dist * Math.cos(angle));
 			zDest = (int) (player.getLocation().getZ() + dist * Math.sin(angle));
+			
+			// get biome at destination
+			biome = world.getBiome(xDest, zDest);
 		}
-		world.loadChunk(xDest, zDest);
-		int yDest = world.getHighestBlockYAt(xDest, zDest);
 		
+		
+		world.loadChunk(xDest, zDest);
+		
+		while(!world.isChunkLoaded(xDest, zDest)){
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		int yDest = world.getHighestBlockYAt(xDest, zDest);
+
 		Location dest = new Location(world, xDest, yDest, zDest);
 		event.setRespawnLocation(dest);
 	}
-
-	public static final String mainDirectory = "plugins/HardcoreSMP/";
-	public static final File data = new File(mainDirectory + "data.dat");
-	public static final Logger logger = Logger.getLogger("Minecraft");
+	
 }

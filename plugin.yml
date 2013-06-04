@@ -1,6 +1,6 @@
 name: HardcoreSMP
 main: com.github.excaliburHisSheath.HardcoreSMP
-version: 0.0.2
+version: 0.1.2.working
 
 commands:
    hsmp:

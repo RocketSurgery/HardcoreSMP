@@ -26,6 +26,7 @@ public class DeathData {
 		return false;
 	}
 	
+	//
 	public static void write(Player player, Location loc, File file) {
 		Properties properties = new Properties();
 		String dest = loc.getX() + "," + loc.getY() + "," + loc.getZ();
