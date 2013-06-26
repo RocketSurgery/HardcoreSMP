@@ -25,7 +25,9 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 	public static final String mainDirectory = "plugins/HardcoreSMP/";
 	public static final File data = new File(mainDirectory + "data.dat");
 	public static final Logger logger = Logger.getLogger("Minecraft");
-	
+
+	private Location destination = null;
+
 	@Override
 	public void onEnable() {
 		new File(mainDirectory).mkdir();
@@ -116,20 +118,14 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player player = (Player) event.getEntity();
-		logger.info(player.getName() + " died");
-	}
-
-	@EventHandler
-	public void onPlayerRespawn(PlayerRespawnEvent event) {
-		Player player = (Player) event.getPlayer();
 		World world = player.getWorld();
-		logger.info(player.getName() + " respawned");
+		logger.info(player.getName() + " died");
 
 		// load from config the minimum and maximum respawn range
 		int min = getConfig().getInt("minimum");
 		int max = getConfig().getInt("maximum");
 
-		// pick a random distance between 1000 and 2000
+		// pick a random distance between min and max distances
 		int dist = (new Random()).nextInt(max - min) + min;
 
 		// pick a random angle value
@@ -142,7 +138,7 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 		// a new spot is chosen until the destination is not in the ocean
 		Biome biome = world.getBiome(xDest, zDest);
 		while (biome == Biome.OCEAN || biome == Biome.RIVER) {
-			
+
 			// generate new distance and angle
 			dist = (new Random()).nextInt(max - min) + min;
 			angle = (new Random()).nextDouble() * 2 * Math.PI;
@@ -150,26 +146,36 @@ public class HardcoreSMP extends JavaPlugin implements Listener {
 			// calc new x and y coords
 			xDest = (int) (player.getLocation().getX() + dist * Math.cos(angle));
 			zDest = (int) (player.getLocation().getZ() + dist * Math.sin(angle));
-			
+
 			// get biome at destination
 			biome = world.getBiome(xDest, zDest);
 		}
-		
-		
+
 		world.loadChunk(xDest, zDest);
 		
-		while(!world.isChunkLoaded(xDest, zDest)){
+		while (!world.isChunkLoaded(xDest, zDest)) {
 			try {
+				logger.info("chunk not loaded");
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			logger.info("chunk not loaded");
 		}
-		
+
 		int yDest = world.getHighestBlockYAt(xDest, zDest);
 
-		Location dest = new Location(world, xDest, yDest, zDest);
-		event.setRespawnLocation(dest);
+		destination = new Location(world, xDest, yDest, zDest);
 	}
-	
+
+	@EventHandler
+	public void onPlayerRespawn(PlayerRespawnEvent event) {
+		Player player = (Player) event.getPlayer();
+//		World world = player.getWorld();
+		logger.info(player.getName() + " respawned");
+
+		if (destination != null)
+			event.setRespawnLocation(destination);
+	}
+
 }
